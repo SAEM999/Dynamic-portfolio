@@ -4,6 +4,7 @@ const AnimatedPortfolio = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [activeSection, setActiveSection] = useState('hero');
   const [formData, setFormData] = useState({ name: '', email: '', message: '' });
+  const [formStatus, setFormStatus] = useState('');
   const sectionsRef = useRef([]);
 
   useEffect(() => {
@@ -59,7 +60,7 @@ const AnimatedPortfolio = () => {
       title: "Personal Portfolio",
       description: "Modern portfolio showcasing projects and skills with dynamic data management and contact form integration.",
       tech: ["React", "Spring Boot", "MySQL", "Vercel"],
-      link: "#",
+      link: "https://github.com/SAEM999",
       color: "from-purple-500 to-pink-600"
     }
   ];
@@ -96,10 +97,41 @@ const AnimatedPortfolio = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    alert('Thank you for your message! I will get back to you soon.');
-    setFormData({ name: '', email: '', message: '' });
+    setFormStatus('sending');
+
+    try {
+      const response = await fetch('https://formspree.io/f/xnqelabc', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          message: formData.message
+        })
+      });
+
+      if (response.ok) {
+        setFormStatus('success');
+        setFormData({ name: '', email: '', message: '' });
+        setTimeout(() => setFormStatus(''), 3000);
+      } else {
+        setFormStatus('error');
+        setTimeout(() => setFormStatus(''), 3000);
+      }
+    } catch (error) {
+      const mailtoLink = `mailto:saemsheikh777@gmail.com?subject=Portfolio Contact from ${encodeURIComponent(formData.name)}&body=${encodeURIComponent(
+        `Name: ${formData.name}\nEmail: ${formData.email}\n\n${formData.message}`
+      )}`;
+
+      window.location.href = mailtoLink;
+      setFormData({ name: '', email: '', message: '' });
+      setFormStatus('');
+    }
   };
 
   return (
@@ -135,6 +167,7 @@ const AnimatedPortfolio = () => {
           height: 100%;
           z-index: 0;
           overflow: hidden;
+          pointer-events: none;
         }
 
         .gradient-blob {
@@ -192,6 +225,7 @@ const AnimatedPortfolio = () => {
           height: 100%;
           pointer-events: none;
           transition: transform 0.1s ease-out;
+          z-index: 1;
         }
 
         .noise-overlay {
@@ -279,7 +313,7 @@ const AnimatedPortfolio = () => {
         /* Content Container */
         .content {
           position: relative;
-          z-index: 2;
+          z-index: 10;
         }
 
         /* Section Base */
@@ -289,8 +323,8 @@ const AnimatedPortfolio = () => {
           display: flex;
           align-items: center;
           justify-content: center;
-          opacity: 0;
-          transform: translateY(50px);
+          opacity: 1;
+          transform: translateY(0);
           transition: opacity 1s ease-out, transform 1s ease-out;
         }
 
@@ -570,6 +604,9 @@ const AnimatedPortfolio = () => {
         }
 
         .project-card {
+          display: block;
+          text-decoration: none;
+          color: inherit;
           background: rgba(255, 255, 255, 0.03);
           border: 1px solid rgba(255, 255, 255, 0.1);
           border-radius: 25px;
@@ -578,6 +615,7 @@ const AnimatedPortfolio = () => {
           cursor: pointer;
           position: relative;
           overflow: hidden;
+          z-index: 20;
         }
 
         .project-card::before {
@@ -648,9 +686,10 @@ const AnimatedPortfolio = () => {
           border-radius: 30px;
           font-weight: 600;
           transition: all 0.3s;
+          pointer-events: none;
         }
 
-        .project-link:hover {
+        .project-card:hover .project-link {
           transform: scale(1.05);
           box-shadow: 0 10px 30px rgba(124, 58, 237, 0.5);
         }
@@ -874,6 +913,31 @@ const AnimatedPortfolio = () => {
           box-shadow: 0 15px 40px rgba(249, 115, 22, 0.5);
         }
 
+        .submit-btn:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+
+        .form-status {
+          margin-top: 1rem;
+          padding: 1rem;
+          border-radius: 10px;
+          text-align: center;
+          font-weight: 600;
+        }
+
+        .form-status.success {
+          background: rgba(16, 185, 129, 0.1);
+          border: 1px solid rgba(16, 185, 129, 0.3);
+          color: #10b981;
+        }
+
+        .form-status.error {
+          background: rgba(239, 68, 68, 0.1);
+          border: 1px solid rgba(239, 68, 68, 0.3);
+          color: #ef4444;
+        }
+
         /* Section Headers */
         .section-header {
           text-align: center;
@@ -996,7 +1060,7 @@ const AnimatedPortfolio = () => {
         {/* Hero Section */}
         <section 
           id="hero" 
-          className="hero-section visible"
+          className="hero-section"
           ref={el => sectionsRef.current[0] = el}
         >
           <h1 className="hero-title">SAEM SHEIKH</h1>
@@ -1029,7 +1093,7 @@ const AnimatedPortfolio = () => {
               <div className="about-cards">
                 <div className="about-card">
                   <h3>🎓 Education</h3>
-                  <p>B.Sc. Computer Science from Chandigarh University</p>
+                  <p>B.Tech Computer Science from Chandigarh University</p>
                   <p>PG-DAC at C-DAC, Noida</p>
                 </div>
                 <div className="about-card">
@@ -1095,7 +1159,13 @@ const AnimatedPortfolio = () => {
             </div>
             <div className="projects-grid">
               {projects.map((project, index) => (
-                <div key={index} className="project-card">
+                <a
+                  key={index}
+                  href={project.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="project-card"
+                >
                   <h3 className="project-title">{project.title}</h3>
                   <p className="project-description">{project.description}</p>
                   <div className="tech-stack">
@@ -1103,15 +1173,10 @@ const AnimatedPortfolio = () => {
                       <span key={techIndex} className="tech-badge">{tech}</span>
                     ))}
                   </div>
-                  <a 
-                    href={project.link} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="project-link"
-                  >
+                  <span className="project-link">
                     View Project →
-                  </a>
-                </div>
+                  </span>
+                </a>
               ))}
             </div>
           </div>
@@ -1198,7 +1263,23 @@ const AnimatedPortfolio = () => {
                   />
                   <label>Your Message</label>
                 </div>
-                <button type="submit" className="submit-btn">Send Message</button>
+                <button 
+                  type="submit" 
+                  className="submit-btn"
+                  disabled={formStatus === 'sending'}
+                >
+                  {formStatus === 'sending' ? 'Sending...' : 'Send Message'}
+                </button>
+                {formStatus === 'success' && (
+                  <div className="form-status success">
+                    ✓ Message sent successfully!
+                  </div>
+                )}
+                {formStatus === 'error' && (
+                  <div className="form-status error">
+                    ✗ Failed to send. Opening email client...
+                  </div>
+                )}
               </form>
             </div>
           </div>
