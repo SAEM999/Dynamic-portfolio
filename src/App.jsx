@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-
+import emailjs from '@emailjs/browser';
 const AnimatedPortfolio = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [activeSection, setActiveSection] = useState('hero');
@@ -7,6 +7,10 @@ const AnimatedPortfolio = () => {
   const [formStatus, setFormStatus] = useState('');
   const sectionsRef = useRef([]);
 
+
+  useEffect(() => {
+  emailjs.init('IuQnL7HBO9oXUduOw');
+}, []);
   useEffect(() => {
     const handleMouseMove = (e) => {
       setMousePosition({
@@ -97,42 +101,29 @@ const AnimatedPortfolio = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setFormStatus('sending');
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setFormStatus('sending');
 
-    try {
-      const response = await fetch('https://formspree.io/f/xnqelabc', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          message: formData.message
-        })
-      });
+  try {
+    await emailjs.send(
+      'service_1ho843k',    // from emailjs.com dashboard
+      'template_wja2z0z',   // your email template ID
+      {
+        from_name: formData.name,
+        from_email: formData.email,
+        message: formData.message,
+      },
+      'IuQnL7HBO9oXUduOw'     // Account > API Keys on emailjs.com
+    );
+    setFormStatus('success');
+    setFormData({ name: '', email: '', message: '' });
+  } catch (error) {
+    setFormStatus('error');
+  }
+  setTimeout(() => setFormStatus(''), 3000);
+};
 
-      if (response.ok) {
-        setFormStatus('success');
-        setFormData({ name: '', email: '', message: '' });
-        setTimeout(() => setFormStatus(''), 3000);
-      } else {
-        setFormStatus('error');
-        setTimeout(() => setFormStatus(''), 3000);
-      }
-    } catch (error) {
-      const mailtoLink = `mailto:saemsheikh777@gmail.com?subject=Portfolio Contact from ${encodeURIComponent(formData.name)}&body=${encodeURIComponent(
-        `Name: ${formData.name}\nEmail: ${formData.email}\n\n${formData.message}`
-      )}`;
-
-      window.location.href = mailtoLink;
-      setFormData({ name: '', email: '', message: '' });
-      setFormStatus('');
-    }
-  };
 
   return (
     <div className="portfolio-container">
@@ -1225,7 +1216,7 @@ const AnimatedPortfolio = () => {
                   <strong>Location:</strong> Mohali, Punjab
                 </p>
                 <div className="contact-links">
-                  <a href="https://linkedin.com/in/saem" target="_blank" rel="noopener noreferrer" className="contact-link">in</a>
+                  <a href="https://www.linkedin.com/in/saem-sheikh-251962231/" target="_blank" rel="noopener noreferrer" className="contact-link">in</a>
                   <a href="https://github.com/SAEM999" target="_blank" rel="noopener noreferrer" className="contact-link">gh</a>
                   <a href="mailto:saemsheikh777@gmail.com" className="contact-link">@</a>
                 </div>
